@@ -14,7 +14,7 @@ from typing import Iterable
 
 from longman import Card
 
-DECK_NAME = "Longman Dictionary"
+DECK_NAME = "new"
 FIELDS = ("Front", "Word", "Back", "Audio")
 
 

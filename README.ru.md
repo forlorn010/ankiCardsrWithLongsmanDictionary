@@ -127,7 +127,7 @@ apple, run; beautiful
 ```text
 #separator:tab
 #html:true
-#deck:Longman Dictionary
+#deck:new
 #columns:Front	Word	Back	Audio
 ```
 

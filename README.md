@@ -123,7 +123,7 @@ The file starts with Anki import headers:
 ```text
 #separator:tab
 #html:true
-#deck:Longman Dictionary
+#deck:new
 #columns:Front	Word	Back	Audio
 ```
 
