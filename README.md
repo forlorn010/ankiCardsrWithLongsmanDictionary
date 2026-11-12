@@ -20,7 +20,8 @@ dependencies** — no `pip install` is needed.
 - Uses Longman's first usable example sentence for the selected entry (the
   first one that actually contains the target word).
 - Handles inflected forms (`colors`, `ran`, `studied`, `lighter`, phrases such
-  as `take off` and `take-off`).
+  as `take off` and `take-off`). If the example uses a non-base form, its
+  ending stays visible after the blank (`neglected` → `_____ed`).
 - Understands definitions like **“the American spelling of colour”**:
   if the American page has no examples, the British page is fetched
   automatically, while the card still links to the American word.
@@ -165,7 +166,8 @@ For the input `color` with part of speech `noun`, a row looks like this
    used only when the first one contains just a derived form (for example,
    `walkers` for the noun `walk`).
 6. Occurrences marked by Longman (`span.NodeW`) and common inflections are
-   replaced with `_____`.
+   replaced with `_____`. If the example uses a non-base form, the ending is
+   kept after the blank (`neglected` → `_____ed`).
 7. For definitions of the form **“the American spelling of [British word]”**:
    - if the American page has an example, that example is used;
    - otherwise the British word's page is fetched and its first example is

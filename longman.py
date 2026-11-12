@@ -331,15 +331,73 @@ def replacement_forms(word: str, marked: Iterable[str] = ()) -> list[str]:
     return sorted(forms, key=lambda item: (-len(item), item))
 
 
+BLANK = "_____"
+
+_VOWELS = set("aeiou")
+_ENDINGS_AFTER_DROPPED_E = {"ing", "ed", "er", "est"}
+
+
+def _ending_after_base(base: str, matched: str) -> str:
+    """Return the ending of ``matched`` when it follows ``base`` literally."""
+    base_l = base.casefold()
+    matched_l = matched.casefold()
+    if not base_l or len(matched_l) <= len(base_l):
+        return ""
+
+    if matched_l.startswith(base_l):
+        # Consonant doubling before -ed/-ing/-er/-est: stop → stopped.
+        if (
+            len(base_l) >= 2
+            and base_l[-1] not in _VOWELS
+            and base_l[-1] not in "wxy"
+            and matched_l.startswith(base_l + base_l[-1])
+        ):
+            return matched[len(base_l) + 1:]
+        return matched[len(base_l):]
+
+    # Silent final -e dropped before a vowel suffix: make → making.
+    if base_l.endswith("e") and len(base_l) > 2:
+        stem = base_l[:-1]
+        if matched_l.startswith(stem):
+            ending = matched_l[len(stem):]
+            if ending in _ENDINGS_AFTER_DROPPED_E:
+                return matched[len(stem):]
+
+    return ""
+
+
+def _visible_tail(base: str, matched: str) -> str:
+    """Return the text that should follow the blank.
+
+    The blank replaces the dictionary form, so ``neglect`` inside ``neglected``
+    becomes ``_____ed``. For phrasal verbs the first word is usually the one
+    that inflects, so ``takes off`` becomes ``_____s off``. When the inflected
+    form does not contain the base form literally (``study`` → ``studied``,
+    ``go`` → ``went``), the whole form is hidden and an empty string is
+    returned.
+    """
+    base_tokens = base.split()
+    matched_tokens = re.split(r"[\s\-\u2013\u2014]+", matched)
+    if len(base_tokens) > 1 and len(matched_tokens) > 1:
+        ending = _ending_after_base(base_tokens[0], matched_tokens[0])
+        if ending:
+            return ending + " " + " ".join(matched_tokens[1:])
+    return _ending_after_base(base, matched)
+
+
 def blank_word(sentence: str, word: str, marked: Iterable[str] = ()) -> Optional[str]:
     """Replace the target word (and its inflections) with ``_____``.
 
-    Returns ``None`` when no form of the word occurs in the sentence.
+    If the example contains an inflected form rather than the dictionary form,
+    the inflection's ending is kept visible after the blank (``neglected`` →
+    ``_____ed``). Returns ``None`` when no form of the word occurs in the
+    sentence.
     """
     forms = replacement_forms(word, marked)
     if not forms:
         return None
 
+    base = normalize_headword(word)
     alternatives = []
     for form in forms:
         pieces = [re.escape(piece) for piece in form.split()]
@@ -349,7 +407,10 @@ def blank_word(sentence: str, word: str, marked: Iterable[str] = ()) -> Optional
         re.IGNORECASE,
     )
 
-    result, count = pattern.subn("_____", sentence)
+    def replacement(match: re.Match[str]) -> str:
+        return BLANK + _visible_tail(base, match.group(0))
+
+    result, count = pattern.subn(replacement, sentence)
     return result if count else None
 
 

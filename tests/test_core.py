@@ -153,7 +153,7 @@ class BlankingTests(unittest.TestCase):
     def test_blank_regular_and_marked_forms(self) -> None:
         self.assertEqual(
             blank_word("The colors are bright.", "color", ["colors"]),
-            "The _____ are bright.",
+            "The _____s are bright.",
         )
         self.assertEqual(
             blank_word("She studied all night.", "study"),
@@ -161,7 +161,31 @@ class BlankingTests(unittest.TestCase):
         )
         self.assertEqual(
             blank_word("Camilli scored 936 runs.", "run", ["runs"]),
-            "Camilli scored 936 _____.",
+            "Camilli scored 936 _____s.",
+        )
+
+    def test_keeps_inflection_ending_after_blank(self) -> None:
+        self.assertEqual(
+            blank_word("They neglected the problem.", "neglect"),
+            "They _____ed the problem.",
+        )
+        self.assertEqual(
+            blank_word("She is making tea.", "make"),
+            "She is _____ing tea.",
+        )
+        self.assertEqual(
+            blank_word("He stopped the car.", "stop"),
+            "He _____ed the car.",
+        )
+        self.assertEqual(
+            blank_word("They neglect the problem.", "neglect"),
+            "They _____ the problem.",
+        )
+
+    def test_irregular_form_hides_the_whole_word(self) -> None:
+        self.assertEqual(
+            blank_word("She went home.", "go"),
+            "She _____ home.",
         )
 
     def test_blank_phrase_with_irregular_verb(self) -> None:
@@ -173,11 +197,15 @@ class BlankingTests(unittest.TestCase):
             blank_word("The plane left at take-off.", "take off", ["take-off"]),
             "The plane left at _____.",
         )
+        self.assertEqual(
+            blank_word("She takes off her coat.", "take off"),
+            "She _____s off her coat.",
+        )
 
     def test_blank_plural_phrase(self) -> None:
         self.assertEqual(
             blank_word("Many human beings live here.", "human being"),
-            "Many _____ live here.",
+            "Many _____s live here.",
         )
 
     def test_returns_none_when_word_is_missing(self) -> None:
@@ -219,7 +247,7 @@ class AmericanSpellingTests(unittest.TestCase):
             "https://www.ldoceonline.com/dictionary/color": american,
         })
         card = client.lookup("color", "noun")
-        self.assertEqual(card.front, "The _____ are bright.")
+        self.assertEqual(card.front, "The _____s are bright.")
         self.assertEqual(card.example_url, "https://www.ldoceonline.com/dictionary/color")
 
     def test_missing_pos_on_both_pages(self) -> None:
